@@ -1,0 +1,32 @@
+#!/bin/bash
+
+cleanup() {
+    echo "Exiting gracefully..."
+
+    exit 1
+}
+
+trap cleanup SIGINT SIGTERM SIGHUP
+
+echo "=== Starting CPU temperature monitoring... ==="
+
+
+while true; do
+
+    temp_raw=$(cat /sys/class/thermal/thermal_zone0/temp)
+    CURRENT_TEMP=$((temp_raw / 1000))
+
+    echo "Monitoring in progress... You will be alerted if the CPU rises above 80 °C"
+
+    if (( temp_raw >= 80000)); then
+        notify-send -u critical "!!! WARNING !!!" "!!! CURRENT TEMP ABOVE 80 DEGREES !!!"
+        echo "$CURRENT_TEMP °C"
+        echo ""
+    else
+        echo "=== Current CPU Temperature ==="
+        echo "${CURRENT_TEMP} °C" 
+        echo ""
+    fi
+
+    sleep 10
+done

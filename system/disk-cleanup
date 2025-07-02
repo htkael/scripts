@@ -1,0 +1,58 @@
+echo "🧹 Starting disk cleanup analysis..."
+echo "=================================="
+
+# Get disk usage info
+echo "💾 DISK USAGE:"
+df -h / | grep -E '^/dev/'
+
+echo ""
+echo "📁 DIRECTORY SIZES:"
+echo "Home: $(du -sh ~ 2>/dev/null | cut -f1)"
+echo "Cache: $(du -sh ~/.cache 2>/dev/null | cut -f1)"
+echo "Downloads: $(du -sh ~/Downloads 2>/dev/null | cut -f1)"
+echo "Trash: $(du -sh ~/.local/share/Trash 2>/dev/null | cut -f1)"
+
+# Find largest files in home (excluding hidden dirs)
+echo ""
+echo "🔍 LARGEST FILES IN HOME:"
+find ~ -maxdepth 2 -type f -not -path '*/.*' -exec du -h {} + 2>/dev/null | sort -hr | head -5
+
+echo ""
+echo "🗑️  CLEANUP OPTIONS:"
+echo "1. Clear cache (~/.cache)"
+echo "2. Empty trash"
+echo "3. Clean old downloads (files older than 30 days)"
+echo "4. Show what would be cleaned (dry run)"
+echo "5. Skip cleanup"
+
+read -p "Choose option (1-5): " choice
+
+case $choice in
+    1) 
+        echo "Clearing cache..."
+        rm -rf ~/.cache/*
+        echo "✅ Cache cleared!"
+        ;;
+    2)
+        echo "Emptying trash..."
+        rm -rf ~/.local/share/Trash/*
+        echo "✅ Trash emptied!"
+        ;;
+    3)
+        echo "Cleaning old downloads..."
+        find ~/Downloads -type f -mtime +30 -delete
+        echo "✅ Old downloads cleaned!"
+        ;;
+    4)
+        echo "📋 Would clean:"
+        echo "Cache files: $(find ~/.cache -type f 2>/dev/null | wc -l) files"
+        echo "Trash files: $(find ~/.local/share/Trash -type f 2>/dev/null | wc -l) files"
+        echo "Old downloads: $(find ~/Downloads -type f -mtime +30 2>/dev/null | wc -l) files"
+        ;;
+    *)
+        echo "Skipping cleanup..."
+        ;;
+esac
+
+echo ""
+echo "🏁 Cleanup complete!"
